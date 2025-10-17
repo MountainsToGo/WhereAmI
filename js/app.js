@@ -6,10 +6,20 @@ class GPSLocationApp {
         this.marker = null;
         this.currentLocation = null;
         this.watchId = null;
+        this.locationHistory = [];
+        this.trail = null;
+        this.waypoints = [];
+        this.bookmarks = [];
+        this.darkMode = false;
+        this.mapStyle = 'osm'; // osm, satellite, terrain
+        this.tileLayer = null;
         this.init();
     }
 
     async init() {
+        // Load saved data from localStorage
+        this.loadSavedData();
+        
         // Initialize map
         this.initializeMap();
         
@@ -21,17 +31,75 @@ class GPSLocationApp {
         
         // Request continuous location updates
         this.watchLocation();
+        
+        // Render bookmarks
+        this.renderBookmarks();
+    }
+
+    loadSavedData() {
+        const saved = localStorage.getItem('wherei-data');
+        if (saved) {
+            const data = JSON.parse(saved);
+            this.locationHistory = data.locationHistory || [];
+            this.waypoints = data.waypoints || [];
+            this.bookmarks = data.bookmarks || [];
+            this.darkMode = data.darkMode || false;
+            this.mapStyle = data.mapStyle || 'osm';
+        }
+        if (this.darkMode) {
+            document.documentElement.style.setProperty('--using-dark-mode', 'true');
+            document.body.classList.add('dark-mode');
+        }
+    }
+
+    saveData() {
+        const data = {
+            locationHistory: this.locationHistory,
+            waypoints: this.waypoints,
+            bookmarks: this.bookmarks,
+            darkMode: this.darkMode,
+            mapStyle: this.mapStyle
+        };
+        localStorage.setItem('wherei-data', JSON.stringify(data));
     }
 
     initializeMap() {
         // Default to world view
         this.map = L.map('map').setView([20, 0], 2);
         
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-        }).addTo(this.map);
+        // Add OpenStreetMap tiles by default
+        this.updateMapStyle(this.mapStyle);
+    }
+
+    updateMapStyle(style) {
+        // Remove old tile layer
+        if (this.tileLayer) {
+            this.map.removeLayer(this.tileLayer);
+        }
+
+        // Add new tile layer based on style
+        switch(style) {
+            case 'satellite':
+                this.tileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri',
+                    maxZoom: 19,
+                }).addTo(this.map);
+                break;
+            case 'terrain':
+                this.tileLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenTopoMap contributors',
+                    maxZoom: 17,
+                }).addTo(this.map);
+                break;
+            default: // osm
+                this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19,
+                }).addTo(this.map);
+        }
+        
+        this.mapStyle = style;
+        this.saveData();
     }
 
     setupEventListeners() {
@@ -54,6 +122,26 @@ class GPSLocationApp {
         document.getElementById('shareBtn').addEventListener('click', () => {
             this.shareLocation();
         });
+
+        // Bookmark button
+        document.getElementById('bookmarkBtn').addEventListener('click', () => {
+            this.bookmarkLocation();
+        });
+
+        // Clear history button
+        document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+            this.clearHistory();
+        });
+
+        // Dark mode toggle
+        document.getElementById('darkModeToggle').addEventListener('click', () => {
+            this.toggleDarkMode();
+        });
+
+        // Map style buttons
+        document.getElementById('osmBtn').addEventListener('click', () => this.updateMapStyle('osm'));
+        document.getElementById('satelliteBtn').addEventListener('click', () => this.updateMapStyle('satellite'));
+        document.getElementById('terrainBtn').addEventListener('click', () => this.updateMapStyle('terrain'));
     }
 
     async getLocation() {
@@ -89,6 +177,17 @@ class GPSLocationApp {
             timestamp
         };
 
+        // Add to location history
+        this.locationHistory.push({
+            ...this.currentLocation,
+            id: Date.now()
+        });
+
+        // Keep last 100 locations
+        if (this.locationHistory.length > 100) {
+            this.locationHistory.shift();
+        }
+
         // Update UI
         this.updateLocationInfo();
         
@@ -98,6 +197,9 @@ class GPSLocationApp {
         // Hide loading and error states
         this.hideLoading();
         this.hideError();
+
+        // Save data
+        this.saveData();
     }
 
     handleLocationError(error) {
@@ -175,6 +277,9 @@ class GPSLocationApp {
             dashArray: '5, 5'
         }).addTo(this.map);
 
+        // Draw location trail
+        this.drawTrail();
+
         // Add popup
         this.marker.bindPopup(`
             <strong>Your Location</strong><br>
@@ -185,6 +290,24 @@ class GPSLocationApp {
 
         // Center map on location
         this.map.setView(latlng, 16);
+    }
+
+    drawTrail() {
+        // Remove old trail
+        if (this.trail) {
+            this.map.removeLayer(this.trail);
+        }
+
+        if (this.locationHistory.length < 2) return;
+
+        // Create polyline from location history
+        const points = this.locationHistory.map(loc => [loc.latitude, loc.longitude]);
+        this.trail = L.polyline(points, {
+            color: '#007AFF',
+            weight: 3,
+            opacity: 0.7,
+            smoothFactor: 1.0
+        }).addTo(this.map);
     }
 
     copyCoordinates() {
@@ -289,6 +412,93 @@ class GPSLocationApp {
         }, 2000);
     }
 
+    bookmarkLocation() {
+        if (!this.currentLocation) return;
+
+        const { latitude, longitude } = this.currentLocation;
+        const bookmark = {
+            id: Date.now(),
+            name: `Bookmark ${this.bookmarks.length + 1}`,
+            latitude,
+            longitude,
+            timestamp: new Date().toLocaleString(),
+            note: ''
+        };
+
+        this.bookmarks.push(bookmark);
+        this.saveData();
+        this.renderBookmarks();
+        this.showNotification('Bookmark saved!');
+    }
+
+    renderBookmarks() {
+        const container = document.getElementById('bookmarksContainer');
+        if (!container) return;
+
+        if (this.bookmarks.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No bookmarks yet</p>';
+            return;
+        }
+
+        container.innerHTML = this.bookmarks.map(bookmark => `
+            <div class="bookmark-item">
+                <div class="bookmark-header">
+                    <strong>${bookmark.name}</strong>
+                    <button class="delete-bookmark-btn" onclick="app.deleteBookmark(${bookmark.id})">✕</button>
+                </div>
+                <div class="bookmark-coords">
+                    ${bookmark.latitude.toFixed(6)}, ${bookmark.longitude.toFixed(6)}
+                </div>
+                <div class="bookmark-time">${bookmark.timestamp}</div>
+                ${bookmark.note ? `<div class="bookmark-note">${bookmark.note}</div>` : ''}
+                <button class="goto-bookmark-btn" onclick="app.goToBookmark(${bookmark.id})">Go To</button>
+            </div>
+        `).join('');
+    }
+
+    goToBookmark(id) {
+        const bookmark = this.bookmarks.find(b => b.id === id);
+        if (bookmark) {
+            this.map.setView([bookmark.latitude, bookmark.longitude], 16);
+        }
+    }
+
+    deleteBookmark(id) {
+        this.bookmarks = this.bookmarks.filter(b => b.id !== id);
+        this.saveData();
+        this.renderBookmarks();
+    }
+
+    clearHistory() {
+        if (confirm('Clear all location history?')) {
+            this.locationHistory = [];
+            if (this.trail) {
+                this.map.removeLayer(this.trail);
+                this.trail = null;
+            }
+            this.saveData();
+            this.showNotification('History cleared!');
+        }
+    }
+
+    toggleDarkMode() {
+        this.darkMode = !this.darkMode;
+        document.body.classList.toggle('dark-mode');
+        document.getElementById('darkModeToggle').classList.toggle('active');
+        this.saveData();
+    }
+
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // Distance in km
+    }
+
     destroy() {
         if (this.watchId) {
             navigator.geolocation.clearWatch(this.watchId);
@@ -298,7 +508,7 @@ class GPSLocationApp {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new GPSLocationApp();
+    window.app = new GPSLocationApp();
 });
 
 // Cleanup on page unload

@@ -27,14 +27,24 @@
     <div id="app" class="app-container">
         <!-- Header -->
         <header class="header">
-            <h1>📍 GPS Location Finder</h1>
-            <p class="subtitle">Find your location instantly</p>
+            <div class="header-top">
+                <h1>📍 WhereAmI</h1>
+                <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle Dark Mode">🌙</button>
+            </div>
+            <p class="subtitle">GPS Location Finder</p>
         </header>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- Map Container -->
             <div id="map" class="map-container"></div>
+
+            <!-- Map Style Selector -->
+            <div class="map-controls">
+                <button id="osmBtn" class="map-style-btn active" title="OpenStreetMap">🗺️</button>
+                <button id="satelliteBtn" class="map-style-btn" title="Satellite">🛰️</button>
+                <button id="terrainBtn" class="map-style-btn" title="Terrain">⛰️</button>
+            </div>
 
             <!-- Location Info Panel -->
             <div class="info-panel">
@@ -95,6 +105,29 @@
                     <div class="action-buttons">
                         <button id="copyBtn" class="action-btn copy-btn">📋 Copy Coordinates</button>
                         <button id="shareBtn" class="action-btn share-btn">🔗 Share Location</button>
+                        <button id="bookmarkBtn" class="action-btn bookmark-btn">⭐ Bookmark</button>
+                    </div>
+
+                    <!-- Tabs for History and Bookmarks -->
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="document.getElementById('historyTab').style.display='block'; document.getElementById('bookmarksTab').style.display='none'; this.classList.add('active'); document.querySelectorAll('.tab-btn')[1].classList.remove('active');">📍 Trail</button>
+                        <button class="tab-btn" onclick="document.getElementById('bookmarksTab').style.display='block'; document.getElementById('historyTab').style.display='none'; this.classList.add('active'); document.querySelectorAll('.tab-btn')[0].classList.remove('active');">⭐ Bookmarks</button>
+                    </div>
+
+                    <!-- History/Trail Section -->
+                    <div id="historyTab" class="tab-content" style="display: block;">
+                        <div class="history-stats">
+                            <span>📍 Points tracked: <strong id="historyCount">0</strong></span>
+                            <button id="clearHistoryBtn" class="clear-btn">Clear Trail</button>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-light); text-align: center; margin-top: 10px;">Your location trail appears as a blue line on the map. Last 100 locations are tracked.</p>
+                    </div>
+
+                    <!-- Bookmarks Section -->
+                    <div id="bookmarksTab" class="tab-content" style="display: none;">
+                        <div id="bookmarksContainer" class="bookmarks-list">
+                            <p style="text-align: center; color: var(--text-light);">No bookmarks yet</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,5 +145,18 @@
     
     <!-- App Script -->
     <script src="js/app.js"></script>
+    <script>
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new GPSLocationApp();
+            // Update history count periodically
+            setInterval(() => {
+                const count = document.getElementById('historyCount');
+                if (count) {
+                    count.textContent = app.locationHistory.length;
+                }
+            }, 1000);
+        });
+    </script>
 </body>
 </html>
