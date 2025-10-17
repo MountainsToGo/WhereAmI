@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GPS Location">
+    <title>GPS Location Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📍 GPS Location Finder</h1>
+            <p class="subtitle">Find your location instantly</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Map Container -->
+            <div id="map" class="map-container"></div>
+
+            <!-- Location Info Panel -->
+            <div class="info-panel">
+                <div class="panel-header">
+                    <h2>Your Location</h2>
+                    <button id="refreshBtn" class="refresh-btn" title="Refresh Location">🔄</button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Detecting your location...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error" class="error" style="display: none;">
+                    <p id="errorMessage"></p>
+                    <button id="retryBtn" class="retry-btn">Retry</button>
+                </div>
+
+                <!-- Success State -->
+                <div id="locationInfo" class="location-info" style="display: none;">
+                    <div class="info-item">
+                        <label>Latitude</label>
+                        <div class="info-value" id="latitude">--</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Longitude</label>
+                        <div class="info-value" id="longitude">--</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Accuracy</label>
+                        <div class="info-value" id="accuracy">--</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Altitude</label>
+                        <div class="info-value" id="altitude">--</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Speed</label>
+                        <div class="info-value" id="speed">--</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Heading</label>
+                        <div class="info-value" id="heading">--</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Last Updated</label>
+                        <div class="info-value" id="timestamp">--</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="copyBtn" class="action-btn copy-btn">📋 Copy Coordinates</button>
+                        <button id="shareBtn" class="action-btn share-btn">🔗 Share Location</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Works on Android & iOS via web browser</p>
+            <p class="version">v1.0.0</p>
+        </footer>
+    </div>
+
+    <!-- Leaflet Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    
+    <!-- App Script -->
+    <script src="js/app.js"></script>
+</body>
+</html>
