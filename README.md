@@ -1,6 +1,6 @@
-# GPS Location App - Web Version
+# WhereAmI - GPS Location App
 
-A web-based GPS location finder that works on Android and iOS browsers. Access your precise GPS coordinates, view your location on an interactive map, and share your location instantly.
+A web-based GPS location finder that works on Android and iOS browsers. Access your precise GPS coordinates, view your location on an interactive map, and install as a home screen app with a beautiful compass icon.
 
 ## Features
 
@@ -17,6 +17,8 @@ A web-based GPS location finder that works on Android and iOS browsers. Access y
 - 🔗 Share location via native share or map links
 - 🔄 Real-time location updates
 - 🌐 Works on any device with a modern web browser
+- 🧭 **NEW:** Compass icon for home screen app installation
+- 📱 **NEW:** Progressive Web App (PWA) support - install as native app
 
 ## Requirements
 
@@ -50,9 +52,32 @@ To open it automatically in your browser:
 npm run dev
 ```
 
-### Access on Your Device
+### Live Deployment
 
-Once the server is running:
+**Access the live app here:**
+🌐 **https://mountainstogo.github.io/WhereAmI/**
+
+Works on any device with a modern web browser!
+
+### Install as Home Screen App
+
+#### 📱 **iOS (iPhone/iPad)**
+1. Open Safari and visit: https://mountainstogo.github.io/WhereAmI/
+2. Tap the **Share** button (arrow pointing up)
+3. Select **Add to Home Screen**
+4. The app will appear with the compass icon 🧭
+5. You can now launch it like a native app
+
+#### 🤖 **Android**
+1. Open Chrome and visit: https://mountainstogo.github.io/WhereAmI/
+2. Tap the **Menu** button (3 dots in top right)
+3. Select **Install app** or **Add to Home Screen**
+4. The app will appear with the compass icon 🧭
+5. You can now launch it like a native app
+
+### Access on Your Device (Local Network)
+
+Once the local server is running:
 
 **Same Network (Recommended):**
 1. Find your computer's IP address:
@@ -65,20 +90,19 @@ Once the server is running:
 - On Android: Use `http://192.168.x.x:8000` (replace with your IP)
 - On iOS: Same as Android
 
-**Production Deployment:**
-- Deploy to a web server with HTTPS support
-- Share the HTTPS URL with users
-- Access via any modern web browser
-
 ## File Structure
 
 ```
-gps-location-app/
+WhereAmI/
 ├── index.html              # Main HTML file
+├── manifest.json           # PWA manifest for app installation
 ├── css/
 │   └── style.css          # Styling and responsive design
 ├── js/
 │   └── app.js             # Main application logic
+├── icons/
+│   ├── compass.svg        # Compass icon (192x192)
+│   └── favicon.svg        # Favicon for browser tab
 ├── package.json           # Dependencies and scripts
 └── README.md              # This file
 ```
@@ -245,6 +269,38 @@ You can extend this app with:
 - ✅ Location bookmarking
 - ✅ Geofencing alerts
 
+## Progressive Web App (PWA)
+
+WhereAmI is a Progressive Web App, which means:
+
+### ✨ PWA Features
+- ✅ **Installable** - Add to home screen on iOS and Android
+- ✅ **App-like** - Runs in standalone mode without browser UI
+- ✅ **Fast** - Instant loading and smooth performance
+- ✅ **Responsive** - Optimized for all device sizes
+- ✅ **Secure** - HTTPS only (served via GitHub Pages)
+- ✅ **Branded** - Custom compass icon and app name
+
+### 🧭 Compass Icon
+The beautiful compass icon features:
+- Blue gradient background (#007AFF to #5AC8FA)
+- Cardinal directions (N, E, S, W)
+- Red north-pointing needle
+- Perfect for GPS/navigation app
+
+### 📋 Manifest File
+The `manifest.json` file configures:
+- App name and short name
+- Display mode (standalone = no browser chrome)
+- Theme color (#007AFF blue)
+- Icon sizes and purposes
+- App categories and shortcuts
+
+### 🔧 Installation Requirements
+- Modern web browser (Chrome, Safari, Firefox, Edge)
+- HTTPS connection (required for PWA)
+- Location permission grant
+
 ## Technologies Used
 
 - **Leaflet.js** v1.9.4 - Interactive mapping
@@ -252,6 +308,9 @@ You can extend this app with:
 - **Vanilla JavaScript** - Core application
 - **HTML5 & CSS3** - UI and styling
 - **Geolocation API** - GPS access
+- **PWA Manifest** - Web app configuration
+- **SVG Icons** - Scalable vector graphics
+- **GitHub Pages** - HTTPS hosting
 
 ## License
 
